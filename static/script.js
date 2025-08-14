@@ -5,10 +5,13 @@ const API_BASE_URL = 'http://localhost:8000';
 let tasks = [];
 let currentFilter = 'all';
 let searchQuery = '';
+let isAddFormVisible = false;
 
 // DOM Elements
 const elements = {
     addForm: document.getElementById('add-task-form'),
+    addTaskToggle: document.getElementById('add-task-toggle'),
+    addTaskSection: document.getElementById('add-task-section'),
     tasksContainer: document.getElementById('tasks-container'),
     searchInput: document.getElementById('search-tasks'),
     filterBtns: document.querySelectorAll('.filter-btn'),
@@ -65,6 +68,57 @@ const utils = {
         element.style.animation = 'none';
         element.offsetHeight; // Trigger reflow
         element.style.animation = animation;
+    },
+
+    // Новая функция для анимации выполнения задачи
+    animateTaskCompletion: (taskElement, isCompleting) => {
+        if (isCompleting) {
+            taskElement.classList.add('completing');
+            setTimeout(() => {
+                taskElement.classList.remove('completing');
+            }, 600);
+        }
+    },
+
+    // Анимация статистики
+    animateStats: () => {
+        Object.values(elements.stats).forEach(stat => {
+            stat.classList.add('pulse');
+            setTimeout(() => {
+                stat.classList.remove('pulse');
+            }, 500);
+        });
+    },
+
+    // Плавная анимация появления элементов
+    fadeInElement: (element, delay = 0) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            element.style.transition = 'all 0.5s ease-out';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, delay);
+    },
+
+    // Переключение формы добавления задачи
+    toggleAddForm: () => {
+        isAddFormVisible = !isAddFormVisible;
+        
+        if (isAddFormVisible) {
+            elements.addTaskSection.classList.add('show');
+            elements.addTaskToggle.classList.add('rotated');
+            // Фокус на первое поле формы
+            setTimeout(() => {
+                document.getElementById('task-title').focus();
+            }, 300);
+        } else {
+            elements.addTaskSection.classList.remove('show');
+            elements.addTaskToggle.classList.remove('rotated');
+            // Сброс формы при скрытии
+            elements.addForm.reset();
+        }
     }
 };
 
@@ -138,6 +192,10 @@ const taskManager = {
             this.renderTasks();
             this.updateStats();
             utils.showNotification('Задача успешно добавлена!');
+            
+            // Скрыть форму после успешного добавления
+            utils.toggleAddForm();
+            
             return newTask;
         } catch (error) {
             utils.showNotification('Ошибка при создании задачи', 'error');
@@ -218,6 +276,12 @@ const taskManager = {
         
         // Add event listeners to new elements
         this.addTaskEventListeners();
+        
+        // Анимация появления задач
+        const taskElements = container.querySelectorAll('.task-item');
+        taskElements.forEach((element, index) => {
+            utils.fadeInElement(element, index * 100);
+        });
     },
 
     createTaskHTML(task) {
@@ -279,7 +343,7 @@ const taskManager = {
                     const taskId = parseInt(item.dataset.taskId);
                     const task = tasks.find(t => t.id === taskId);
                     if (task) {
-                        this.quickToggleStatus(task);
+                        this.quickToggleStatus(task, item);
                     }
                 }
             });
@@ -309,9 +373,29 @@ const taskManager = {
         }
     },
 
-    async quickToggleStatus(task) {
+    async quickToggleStatus(task, taskElement) {
         const newStatus = !task.status;
-        await this.updateTask(task.id, { ...task, status: newStatus });
+        
+        // Анимация выполнения
+        utils.animateTaskCompletion(taskElement, true);
+        
+        try {
+            await this.updateTask(task.id, { ...task, status: newStatus });
+            
+            // Дополнительная анимация после успешного обновления
+            setTimeout(() => {
+                taskElement.style.transition = 'all 0.3s ease';
+                if (newStatus) {
+                    taskElement.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        taskElement.style.transform = 'scale(1)';
+                    }, 300);
+                }
+            }, 600);
+            
+        } catch (error) {
+            console.error('Error toggling task status:', error);
+        }
     },
 
     updateStats() {
@@ -319,14 +403,30 @@ const taskManager = {
         const completed = tasks.filter(task => task.status).length;
         const pending = total - completed;
 
-        elements.stats.total.textContent = total;
-        elements.stats.completed.textContent = completed;
-        elements.stats.pending.textContent = pending;
+        // Плавное обновление статистики
+        const animateNumber = (element, target) => {
+            const current = parseInt(element.textContent) || 0;
+            const increment = (target - current) / 10;
+            let currentValue = current;
+            
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if ((increment > 0 && currentValue >= target) || 
+                    (increment < 0 && currentValue <= target)) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.round(currentValue);
+                }
+            }, 50);
+        };
 
-        // Animate stats
-        Object.values(elements.stats).forEach(stat => {
-            utils.animateElement(stat, 'pulse 0.5s ease-in-out');
-        });
+        animateNumber(elements.stats.total, total);
+        animateNumber(elements.stats.completed, completed);
+        animateNumber(elements.stats.pending, pending);
+
+        // Анимация статистики
+        utils.animateStats();
     }
 };
 
@@ -355,6 +455,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     taskManager.loadTasks();
 
+    // Add task toggle button
+    elements.addTaskToggle.addEventListener('click', () => {
+        utils.toggleAddForm();
+    });
+
     // Add task form
     elements.addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -368,7 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await taskManager.addTask(taskData);
-            e.target.reset();
         } catch (error) {
             console.error('Error adding task:', error);
         }
@@ -423,15 +527,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-        // Ctrl/Cmd + N to focus on add task form
+        // Ctrl/Cmd + N to toggle add task form
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
             e.preventDefault();
-            document.getElementById('task-title').focus();
+            utils.toggleAddForm();
         }
         
-        // Escape to close modal
-        if (e.key === 'Escape' && elements.editModal.classList.contains('active')) {
-            taskManager.closeEditModal();
+        // Escape to close modal or form
+        if (e.key === 'Escape') {
+            if (elements.editModal.classList.contains('active')) {
+                taskManager.closeEditModal();
+            } else if (isAddFormVisible) {
+                utils.toggleAddForm();
+            }
         }
         
         // Ctrl/Cmd + F to focus search
@@ -466,11 +574,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const midY = rect.top + rect.height / 2;
             
             if (e.clientY < midY) {
-                taskItem.style.borderTop = '3px solid #3498db';
+                taskItem.style.borderTop = '3px solid #667eea';
                 taskItem.style.borderBottom = '';
             } else {
                 taskItem.style.borderTop = '';
-                taskItem.style.borderBottom = '3px solid #3498db';
+                taskItem.style.borderBottom = '3px solid #667eea';
             }
         }
     });
@@ -511,7 +619,7 @@ const style = document.createElement('style');
 style.textContent = `
     @keyframes pulse {
         0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
+        50% { transform: scale(1.05); }
         100% { transform: scale(1); }
     }
     
