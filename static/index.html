@@ -6,160 +6,180 @@
     <title>Task Manager - Управление задачами</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
+    <!-- Модальное окно авторизации -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Вход</button>
+                <button class="tab-btn" data-tab="register">Регистрация</button>
+            </div>
+            
+            <!-- Форма входа -->
+            <form id="loginForm" class="auth-form active">
+                <h2><i class="fas fa-sign-in-alt"></i> Вход в систему</h2>
+                <div class="form-group">
+                    <label for="loginUsername">Имя пользователя</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+            </form>
+            
+            <!-- Форма регистрации -->
+            <form id="registerForm" class="auth-form">
+                <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
+                <div class="form-group">
+                    <label for="registerUsername">Имя пользователя</label>
+                    <input type="text" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Пароль</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основной интерфейс -->
+    <div id="mainApp" class="hidden">
+        <!-- Заголовок -->
         <header class="header">
             <div class="header-content">
-                <h1 class="logo">
-                    <i class="fas fa-tasks"></i>
-                    Task Manager
-                </h1>
-                <div class="header-stats">
-                    <div class="stat">
-                        <span class="stat-number" id="total-tasks">0</span>
-                        <span class="stat-label">Всего задач</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number" id="completed-tasks">0</span>
-                        <span class="stat-label">Выполнено</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number" id="pending-tasks">0</span>
-                        <span class="stat-label">В ожидании</span>
-                    </div>
+                <h1><i class="fas fa-tasks"></i> Task Manager</h1>
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                    <button id="logoutBtn" class="btn btn-outline">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
                 </div>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main">
-            <!-- Add Task Toggle Button -->
-            <button class="add-task-toggle" id="add-task-toggle">
-                <i class="fas fa-plus"></i>
-                Добавить новую задачу
-            </button>
-
-            <!-- Add Task Form -->
-            <section class="add-task-section" id="add-task-section">
-                <div class="card">
-                    <h2 class="section-title">
-                        <i class="fas fa-plus-circle"></i>
-                        Добавить новую задачу
-                    </h2>
-                    <form id="add-task-form" class="task-form">
-                        <div class="form-group">
-                            <label for="task-title">Название задачи *</label>
-                            <input type="text" id="task-title" name="title" required 
-                                   placeholder="Введите название задачи...">
-                        </div>
-                        <div class="form-group">
-                            <label for="task-description">Описание</label>
-                            <textarea id="task-description" name="description" 
-                                      placeholder="Добавьте описание задачи..."></textarea>
-                        </div>
-                        <div class="form-group checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="task-status" name="status">
-                                <span class="checkmark"></span>
-                                Задача выполнена
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
-                            Добавить задачу
-                        </button>
-                    </form>
-                </div>
-            </section>
-
-            <!-- Tasks List -->
-            <section class="tasks-section">
-                <div class="card">
-                    <div class="section-header">
-                        <h2 class="section-title">
-                            <i class="fas fa-list"></i>
-                            Список задач
-                        </h2>
-                        <div class="filters">
-                            <button class="filter-btn active" data-filter="all">
-                                <i class="fas fa-th-list"></i>
-                                Все
-                            </button>
-                            <button class="filter-btn" data-filter="pending">
-                                <i class="fas fa-clock"></i>
-                                В ожидании
-                            </button>
-                            <button class="filter-btn" data-filter="completed">
-                                <i class="fas fa-check"></i>
-                                Выполненные
-                            </button>
-                        </div>
-                    </div>
-                    
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Панель управления -->
+            <div class="control-panel">
+                <div class="search-section">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="search-tasks" placeholder="Поиск задач...">
-                    </div>
-
-                    <div class="tasks-container" id="tasks-container">
-                        <!-- Tasks will be loaded here -->
-                        <div class="loading-spinner" id="loading-spinner">
-                            <div class="spinner"></div>
-                            <p>Загружаем задачи...</p>
-                        </div>
+                        <input type="text" id="searchInput" placeholder="Поиск задач...">
                     </div>
                 </div>
-            </section>
+                
+                <div class="filter-section">
+                    <button class="filter-btn active" data-filter="all">
+                        <i class="fas fa-list"></i> Все
+                    </button>
+                    <button class="filter-btn" data-filter="pending">
+                        <i class="fas fa-clock"></i> В ожидании
+                    </button>
+                    <button class="filter-btn" data-filter="completed">
+                        <i class="fas fa-check"></i> Выполненные
+                    </button>
+                </div>
+                
+                <div class="add-section">
+                    <button id="addTaskBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Добавить задачу
+                    </button>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <i class="fas fa-tasks"></i>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalTasks">0</span>
+                        <span class="stat-label">Всего задач</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="stat-info">
+                        <span class="stat-number" id="pendingTasks">0</span>
+                        <span class="stat-label">В ожидании</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-info">
+                        <span class="stat-number" id="completedTasks">0</span>
+                        <span class="stat-label">Выполнено</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список задач -->
+            <div class="tasks-container">
+                <div id="tasksList" class="tasks-list">
+                    <!-- Задачи будут добавляться здесь -->
+                </div>
+                
+                <div id="emptyState" class="empty-state hidden">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>Нет задач</h3>
+                    <p>Создайте свою первую задачу!</p>
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- Edit Task Modal -->
-    <div class="modal" id="edit-modal">
+    <!-- Модальное окно добавления/редактирования задачи -->
+    <div id="taskModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Редактировать задачу</h3>
-                <button class="modal-close" id="close-modal">
+                <h2 id="taskModalTitle">Добавить задачу</h2>
+                <button class="close-btn" id="closeTaskModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form id="edit-task-form" class="task-form">
-                <input type="hidden" id="edit-task-id">
+            
+            <form id="taskForm">
                 <div class="form-group">
-                    <label for="edit-task-title">Название задачи *</label>
-                    <input type="text" id="edit-task-title" name="title" required>
+                    <label for="taskTitle">Название задачи</label>
+                    <input type="text" id="taskTitle" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="edit-task-description">Описание</label>
-                    <textarea id="edit-task-description" name="description"></textarea>
+                    <label for="taskDescription">Описание</label>
+                    <textarea id="taskDescription" rows="3"></textarea>
                 </div>
-                <div class="form-group checkbox-group">
+                
+                <div class="form-group">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="edit-task-status" name="status">
+                        <input type="checkbox" id="taskStatus">
                         <span class="checkmark"></span>
-                        Задача выполнена
+                        Выполнено
                     </label>
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="cancel-edit">Отмена</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i>
-                        Сохранить
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelTaskBtn">Отмена</button>
+                    <button type="submit" class="btn btn-primary" id="saveTaskBtn">
+                        <i class="fas fa-save"></i> Сохранить
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <div class="notification-content">
-            <i class="notification-icon"></i>
-            <span class="notification-message"></span>
-        </div>
-    </div>
+    <!-- Уведомления -->
+    <div id="notifications" class="notifications"></div>
 
     <script src="script.js"></script>
 </body>

@@ -3,6 +3,16 @@ from sqlalchemy.orm import mapped_column, Mapped, declarative_base
 
 Base = declarative_base()
 
+class UserModel(Base):
+    __tablename__ = 'users'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True, index=True)
+    email: Mapped[str] = mapped_column(unique=True, index=True)
+    hashed_password: Mapped[str]
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.now)
+
 class TaskModel(Base):
     __tablename__ = 'task'
 
@@ -11,3 +21,4 @@ class TaskModel(Base):
     description: Mapped[str] = mapped_column(nullable=True)
     created: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.now)
     status: Mapped[bool] = mapped_column(nullable=True, default=False)
+    user_id: Mapped[int] = mapped_column(nullable=True)  # Связь с пользователем
