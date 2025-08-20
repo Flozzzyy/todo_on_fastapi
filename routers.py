@@ -15,7 +15,7 @@ async def root():
     return {"message": "Task Manager API is running! Visit /static/index.html for the frontend"}
 
 # Эндпоинты для авторизации
-@router.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=UserResponse, tags=['Регистрация'])
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """Регистрация нового пользователя"""
     # Проверяем, не существует ли уже пользователь с таким username
@@ -42,7 +42,7 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
     
     return db_user
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, tags=['Авторизация'])
 async def login(user_credentials: UserLogin, db: AsyncSession = Depends(get_db)):
     """Вход пользователя"""
     # Ищем пользователя по username
@@ -65,7 +65,7 @@ async def login(user_credentials: UserLogin, db: AsyncSession = Depends(get_db))
     return {"access_token": access_token, "token_type": "bearer"}
 
 # Защищенные эндпоинты для задач (требуют авторизации)
-@router.post('/tasks/add', response_model=TaskResponse)
+@router.post('/tasks/add', response_model=TaskResponse, tags=['CRUD'])
 async def add_one(
     task: TaskCreate, 
     db: AsyncSession = Depends(get_db),
@@ -91,7 +91,7 @@ async def get_all(
     tasks = result.scalars().all()
     return tasks
 
-@router.get('/tasks/{id}', response_model=TaskResponse)
+@router.get('/tasks/{id}', response_model=TaskResponse, tags=['CRUD'])
 async def get_one(
     id: int, 
     db: AsyncSession = Depends(get_db),
@@ -107,7 +107,7 @@ async def get_one(
         raise HTTPException(status_code=404, detail="Task not found")
     return task
 
-@router.put('/tasks/update/{id}', response_model=TaskResponse)
+@router.put('/tasks/update/{id}', response_model=TaskResponse, tags=['CRUD'])
 async def update_one(
     id: int, 
     task_update: TaskUpdate, 
@@ -135,7 +135,7 @@ async def update_one(
     await db.refresh(task)
     return task
 
-@router.delete('/tasks/delete/{id}')
+@router.delete('/tasks/delete/{id}', tags=['CRUD'])
 async def delete_one(
     id: int, 
     db: AsyncSession = Depends(get_db),

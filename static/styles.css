@@ -6,10 +6,37 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+    background: #0b0b10;
     min-height: 100vh;
-    color: #333;
+    color: #ddd;
+}
+
+/* Темы */
+:root {
+    --bg-primary: #0b0b10;
+    --bg-secondary: #12131a;
+    --bg-tertiary: #1e1f29;
+    --text-primary: #e6e6e9;
+    --text-secondary: #a6a7ab;
+    --accent: #5865F2; /* Discord blurple */
+    --success: #43b581;
+    --danger: #f04747;
+    --warning: #faa61a;
+    --elev-1: rgba(0,0,0,0.2);
+}
+
+.light-theme {
+    --bg-primary: #f2f3f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f8f9fb;
+    --text-primary: #2e3338;
+    --text-secondary: #586069;
+    --accent: #5865F2;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --elev-1: rgba(0,0,0,0.06);
 }
 
 /* Утилиты */
@@ -33,14 +60,14 @@ body {
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 15px;
     padding: 30px;
     max-width: 500px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 40px var(--elev-1);
     animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -76,8 +103,8 @@ body {
 }
 
 .tab-btn.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
+    color: var(--accent);
+    border-bottom-color: var(--accent);
 }
 
 .auth-form {
@@ -91,7 +118,7 @@ body {
 .auth-form h2 {
     text-align: center;
     margin-bottom: 30px;
-    color: #333;
+    color: var(--text-primary);
     font-size: 24px;
 }
 
@@ -104,23 +131,25 @@ body {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-secondary);
 }
 
 .form-group input,
 .form-group textarea {
     width: 100%;
     padding: 12px 15px;
-    border: 2px solid #e1e5e9;
+    border: 2px solid #2a2c37;
     border-radius: 8px;
     font-size: 16px;
     transition: border-color 0.3s ease;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent);
 }
 
 /* Кнопки */
@@ -137,48 +166,64 @@ body {
     gap: 8px;
     text-decoration: none;
 }
+/* Ripple эффект для кнопок */
+.btn { position: relative; overflow: hidden; }
+.btn::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.6s ease;
+    opacity: 0;
+}
+.btn:active::after {
+    width: 220px; height: 220px; opacity: 0.2;
+}
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--accent);
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
 }
 
 .btn-secondary {
-    background: #f8f9fa;
-    color: #666;
-    border: 2px solid #e1e5e9;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 2px solid #2a2c37;
 }
 
 .btn-secondary:hover {
-    background: #e9ecef;
+    background: #2a2c37;
 }
 
 .btn-outline {
     background: transparent;
-    color: #667eea;
-    border: 2px solid #667eea;
+    color: var(--accent);
+    border: 2px solid var(--accent);
 }
 
 .btn-outline:hover {
-    background: #667eea;
+    background: var(--accent);
     color: white;
 }
 
 /* Основное приложение */
 #mainApp {
     min-height: 100vh;
-    background: #f8f9fa;
+    background: var(--bg-primary);
 }
 
 /* Заголовок */
 .header {
-    background: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: var(--bg-secondary);
+    box-shadow: 0 2px 10px var(--elev-1);
     padding: 20px 0;
 }
 
@@ -192,7 +237,7 @@ body {
 }
 
 .header h1 {
-    color: #333;
+    color: var(--text-primary);
     font-size: 28px;
     font-weight: 700;
 }
@@ -205,7 +250,39 @@ body {
 
 #currentUser {
     font-weight: 600;
-    color: #667eea;
+    color: var(--accent);
+}
+
+/* Иконки/кнопки */
+.icon-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+.icon-btn:hover {
+    background: #1d1f2b;
+    transform: translateY(-1px);
+}
+
+/* Theme toggle animation */
+.icon-btn.animate .fas {
+    animation: themeSpin 0.6s ease, themePulse 0.6s ease;
+}
+
+@keyframes themeSpin {
+    from { transform: rotate(0deg) scale(1); }
+    to { transform: rotate(180deg) scale(1.1); }
+}
+
+@keyframes themePulse {
+    0% { text-shadow: 0 0 0 rgba(88,101,242,0.0); }
+    50% { text-shadow: 0 0 8px rgba(88,101,242,0.6); }
+    100% { text-shadow: 0 0 0 rgba(88,101,242,0.0); }
 }
 
 /* Основной контент */
@@ -217,11 +294,11 @@ body {
 
 /* Панель управления */
 .control-panel {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 15px;
     padding: 25px;
     margin-bottom: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 5px 15px var(--elev-1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -250,15 +327,17 @@ body {
 .search-box input {
     width: 100%;
     padding: 12px 15px 12px 45px;
-    border: 2px solid #e1e5e9;
-    border-radius: 25px;
+    border: 2px solid #2a2c37;
+    border-radius: 12px;
     font-size: 16px;
     transition: border-color 0.3s ease;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .search-box input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent);
 }
 
 .filter-section {
@@ -268,20 +347,20 @@ body {
 
 .filter-btn {
     padding: 10px 20px;
-    border: 2px solid #e1e5e9;
-    background: white;
+    border: 2px solid #2a2c37;
+    background: var(--bg-tertiary);
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 600;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .filter-btn.active,
 .filter-btn:hover {
-    background: #667eea;
+    background: var(--accent);
     color: white;
-    border-color: #667eea;
+    border-color: var(--accent);
 }
 
 .add-section {
@@ -297,10 +376,10 @@ body {
 }
 
 .stat-card {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 5px 15px var(--elev-1);
     display: flex;
     align-items: center;
     gap: 15px;
@@ -313,7 +392,7 @@ body {
 
 .stat-card i {
     font-size: 32px;
-    color: #667eea;
+    color: var(--accent);
 }
 
 .stat-info {
@@ -324,21 +403,21 @@ body {
 .stat-number {
     font-size: 28px;
     font-weight: 700;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .stat-label {
     font-size: 14px;
-    color: #666;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 /* Список задач */
 .tasks-container {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 5px 15px var(--elev-1);
 }
 
 .tasks-list {
@@ -346,12 +425,26 @@ body {
     flex-direction: column;
     gap: 15px;
 }
+/* Skeleton placeholders */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 37%, rgba(255,255,255,0.06) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.2s ease-in-out infinite;
+    border-radius: 12px;
+}
+@keyframes shimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+.task-skeleton {
+    height: 72px;
+}
 
 .task-item {
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
     border-radius: 12px;
     padding: 20px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid var(--accent);
     transition: all 0.3s ease;
     cursor: pointer;
 }
@@ -362,13 +455,13 @@ body {
 }
 
 .task-item.completed {
-    border-left-color: #28a745;
+    border-left-color: var(--success);
     opacity: 0.7;
 }
 
 .task-item.completed .task-title {
     text-decoration: line-through;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .task-header {
@@ -381,7 +474,7 @@ body {
 .task-title {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 5px;
 }
 
@@ -397,24 +490,24 @@ body {
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .task-action-btn:hover {
-    background: #e9ecef;
-    color: #333;
+    background: #2a2c37;
+    color: var(--text-primary);
 }
 
 .task-action-btn.edit:hover {
-    color: #667eea;
+    color: var(--accent);
 }
 
 .task-action-btn.delete:hover {
-    color: #dc3545;
+    color: var(--danger);
 }
 
 .task-description {
-    color: #666;
+    color: var(--text-secondary);
     line-height: 1.5;
     margin-bottom: 10px;
 }
@@ -424,7 +517,7 @@ body {
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
-    color: #999;
+    color: #8a8c95;
 }
 
 .task-status {
@@ -436,32 +529,32 @@ body {
 }
 
 .task-status.pending {
-    background: #fff3cd;
-    color: #856404;
+    background: rgba(250, 166, 26, 0.15);
+    color: var(--warning);
 }
 
 .task-status.completed {
-    background: #d4edda;
-    color: #155724;
+    background: rgba(67, 181, 129, 0.15);
+    color: var(--success);
 }
 
 /* Пустое состояние */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .empty-state i {
     font-size: 64px;
-    color: #ddd;
+    color: #2a2c37;
     margin-bottom: 20px;
 }
 
 .empty-state h3 {
     font-size: 24px;
     margin-bottom: 10px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 /* Модальное окно задачи */
@@ -475,7 +568,7 @@ body {
 }
 
 .modal-header h2 {
-    color: #333;
+    color: var(--text-primary);
     font-size: 24px;
 }
 
@@ -484,15 +577,15 @@ body {
     border: none;
     font-size: 20px;
     cursor: pointer;
-    color: #666;
+    color: var(--text-secondary);
     padding: 5px;
     border-radius: 5px;
     transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-    background: #f0f0f0;
-    color: #333;
+    background: #2a2c37;
+    color: var(--text-primary);
 }
 
 .form-actions {
@@ -504,30 +597,34 @@ body {
 
 /* Чекбокс */
 .checkbox-label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     cursor: pointer;
     font-weight: 500;
-    color: #555;
+    color: var(--text-secondary);
+    user-select: none;
 }
 
 .checkbox-label input[type="checkbox"] {
-    display: none;
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .checkmark {
     width: 20px;
     height: 20px;
-    border: 2px solid #e1e5e9;
+    border: 2px solid #2a2c37;
     border-radius: 4px;
     margin-right: 10px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkmark {
-    background: #667eea;
-    border-color: #667eea;
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
@@ -553,10 +650,10 @@ body {
 }
 
 .notification {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 8px;
     padding: 15px 20px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px var(--elev-1);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -576,15 +673,15 @@ body {
 }
 
 .notification.success {
-    border-left: 4px solid #28a745;
+    border-left: 4px solid var(--success);
 }
 
 .notification.error {
-    border-left: 4px solid #dc3545;
+    border-left: 4px solid var(--danger);
 }
 
 .notification.info {
-    border-left: 4px solid #667eea;
+    border-left: 4px solid var(--accent);
 }
 
 .notification i {

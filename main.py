@@ -23,9 +23,3 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Подключаем роутер
 app.include_router(router)
-
-@app.on_event('startup')
-async def startup():
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-

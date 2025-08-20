@@ -4,6 +4,7 @@ let authToken = localStorage.getItem('authToken');
 let tasks = [];
 let currentFilter = 'all';
 let searchQuery = '';
+let currentTheme = localStorage.getItem('theme') || 'dark';
 
 // DOM элементы
 const authModal = document.getElementById('authModal');
@@ -19,11 +20,17 @@ const tasksList = document.getElementById('tasksList');
 const emptyState = document.getElementById('emptyState');
 const searchInput = document.getElementById('searchInput');
 const filterBtns = document.querySelectorAll('.filter-btn');
+const themeToggleBtn = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+const loginBtn = document.getElementById('loginBtn');
+const guestState = document.getElementById('guestState');
+const getStartedBtn = document.getElementById('getStartedBtn');
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
+    applyTheme(currentTheme);
 });
 
 function initializeApp() {
@@ -31,7 +38,8 @@ function initializeApp() {
         // Проверяем валидность токена
         checkAuthToken();
     } else {
-        showAuthModal();
+        mainApp.classList.remove('hidden');
+        updateAuthUI();
     }
 }
 
@@ -44,9 +52,17 @@ function setupEventListeners() {
     loginForm.addEventListener('submit', handleLogin);
     registerForm.addEventListener('submit', handleRegister);
     logoutBtn.addEventListener('click', handleLogout);
+    if (loginBtn) loginBtn.addEventListener('click', showAuthModal);
+    if (getStartedBtn) getStartedBtn.addEventListener('click', showAuthModal);
     
     // Задачи
-    addTaskBtn.addEventListener('click', showAddTaskModal);
+    addTaskBtn.addEventListener('click', function() {
+        if (!authToken) {
+            showAuthModal();
+            return;
+        }
+        showAddTaskModal();
+    });
     taskForm.addEventListener('submit', handleTaskSubmit);
     document.getElementById('closeTaskModal').addEventListener('click', hideTaskModal);
     document.getElementById('cancelTaskBtn').addEventListener('click', hideTaskModal);
@@ -56,6 +72,10 @@ function setupEventListeners() {
     filterBtns.forEach(btn => {
         btn.addEventListener('click', handleFilter);
     });
+    // Тема
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
     
     // Закрытие модальных окон
     window.addEventListener('click', function(e) {
@@ -100,17 +120,18 @@ async function handleLogin(e) {
             const data = await response.json();
             authToken = data.access_token;
             localStorage.setItem('authToken', authToken);
-            currentUser = username;
-            
-            showNotification('Успешный вход!', 'success');
+            currentUser = extractUsernameFromJWT(authToken) || username;
+
+            showNotification('Signed in successfully', 'success');
             hideAuthModal();
+            updateAuthUI();
             loadTasks();
         } else {
             const error = await response.json();
-            showNotification(error.detail || 'Ошибка входа', 'error');
+            showNotification(error.detail || 'Sign in failed', 'error');
         }
     } catch (error) {
-        showNotification('Ошибка соединения', 'error');
+        showNotification('Connection error', 'error');
     }
 }
 
@@ -131,16 +152,16 @@ async function handleRegister(e) {
         });
         
         if (response.ok) {
-            showNotification('Регистрация успешна! Теперь войдите в систему.', 'success');
-            // Переключаемся на вкладку входа
+            showNotification('Account created. Please sign in.', 'success');
+            // Switch to login tab
             document.querySelector('[data-tab="login"]').click();
             document.getElementById('loginUsername').value = username;
         } else {
             const error = await response.json();
-            showNotification(error.detail || 'Ошибка регистрации', 'error');
+            showNotification(error.detail || 'Sign up failed', 'error');
         }
     } catch (error) {
-        showNotification('Ошибка соединения', 'error');
+        showNotification('Connection error', 'error');
     }
 }
 
@@ -150,8 +171,9 @@ function handleLogout() {
     localStorage.removeItem('authToken');
     tasks = [];
     
-    showAuthModal();
-    showNotification('Вы вышли из системы', 'info');
+    updateAuthUI();
+    renderTasks();
+    showNotification('Signed out', 'info');
 }
 
 async function checkAuthToken() {
@@ -166,35 +188,34 @@ async function checkAuthToken() {
             // Токен валиден, загружаем задачи
             const data = await response.json();
             tasks = data;
-            currentUser = 'Пользователь'; // Можно получить из токена
+            currentUser = extractUsernameFromJWT(authToken) || 'User';
             hideAuthModal();
+            updateAuthUI();
             renderTasks();
             updateStats();
         } else {
             // Токен невалиден
             localStorage.removeItem('authToken');
             authToken = null;
-            showAuthModal();
+            updateAuthUI();
         }
     } catch (error) {
-        showAuthModal();
+        updateAuthUI();
     }
 }
 
 // Функции отображения
 function showAuthModal() {
     authModal.style.display = 'flex';
-    mainApp.classList.add('hidden');
 }
 
 function hideAuthModal() {
     authModal.style.display = 'none';
     mainApp.classList.remove('hidden');
-    currentUserSpan.textContent = currentUser;
 }
 
 function showAddTaskModal() {
-    document.getElementById('taskModalTitle').textContent = 'Добавить задачу';
+    document.getElementById('taskModalTitle').textContent = 'Add task';
     taskForm.reset();
     taskModal.classList.remove('hidden');
 }
@@ -207,6 +228,12 @@ function hideTaskModal() {
 // Функции работы с задачами
 async function loadTasks() {
     try {
+        // Show skeletons while loading
+        tasksList.innerHTML = `
+            <div class="task-skeleton skeleton"></div>
+            <div class="task-skeleton skeleton"></div>
+            <div class="task-skeleton skeleton"></div>
+        `;
         const response = await fetch('/tasks', {
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -215,13 +242,14 @@ async function loadTasks() {
         
         if (response.ok) {
             tasks = await response.json();
+            if (guestState) guestState.classList.add('hidden');
             renderTasks();
             updateStats();
         } else {
-            showNotification('Ошибка загрузки задач', 'error');
+            showNotification('Failed to load tasks', 'error');
         }
     } catch (error) {
-        showNotification('Ошибка соединения', 'error');
+        showNotification('Connection error', 'error');
     }
 }
 
@@ -254,13 +282,13 @@ async function handleTaskSubmit(e) {
             renderTasks();
             updateStats();
             hideTaskModal();
-            showNotification('Задача добавлена!', 'success');
+            showNotification('Task added', 'success');
         } else {
             const error = await response.json();
-            showNotification(error.detail || 'Ошибка добавления задачи', 'error');
+            showNotification(error.detail || 'Failed to add task', 'error');
         }
     } catch (error) {
-        showNotification('Ошибка соединения', 'error');
+        showNotification('Connection error', 'error');
     }
 }
 
@@ -282,18 +310,18 @@ async function updateTaskStatus(taskId, newStatus) {
                 tasks[taskIndex] = updatedTask;
                 renderTasks();
                 updateStats();
-                showNotification('Статус обновлен!', 'success');
+                showNotification('Status updated', 'success');
             }
         } else {
-            showNotification('Ошибка обновления статуса', 'error');
+            showNotification('Failed to update status', 'error');
         }
     } catch (error) {
-        showNotification('Ошибка соединения', 'error');
+        showNotification('Connection error', 'error');
     }
 }
 
 async function deleteTask(taskId) {
-    if (!confirm('Вы уверены, что хотите удалить эту задачу?')) {
+    if (!confirm('Are you sure you want to delete this task?')) {
         return;
     }
     
@@ -309,12 +337,12 @@ async function deleteTask(taskId) {
             tasks = tasks.filter(t => t.id !== taskId);
             renderTasks();
             updateStats();
-            showNotification('Задача удалена!', 'success');
+            showNotification('Task deleted', 'success');
         } else {
-            showNotification('Ошибка удаления задачи', 'error');
+            showNotification('Failed to delete task', 'error');
         }
     } catch (error) {
-        showNotification('Ошибка соединения', 'error');
+        showNotification('Connection error', 'error');
     }
 }
 
@@ -325,10 +353,12 @@ function renderTasks() {
     if (filteredTasks.length === 0) {
         tasksList.innerHTML = '';
         emptyState.classList.remove('hidden');
+        if (!authToken && guestState) guestState.classList.remove('hidden');
         return;
     }
     
     emptyState.classList.add('hidden');
+    if (guestState) guestState.classList.add('hidden');
     
     tasksList.innerHTML = filteredTasks.map(task => `
         <div class="task-item ${task.status ? 'completed' : ''}" data-id="${task.id}">
@@ -345,9 +375,7 @@ function renderTasks() {
             </div>
             ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
             <div class="task-meta">
-                <span class="task-status ${task.status ? 'completed' : 'pending'}">
-                    ${task.status ? 'Выполнено' : 'В ожидании'}
-                </span>
+                <span class="task-status ${task.status ? 'completed' : 'pending'}">${task.status ? 'Completed' : 'Pending'}</span>
                 <span>${formatDate(task.created)}</span>
             </div>
         </div>
@@ -399,6 +427,34 @@ function updateStats() {
     document.getElementById('pendingTasks').textContent = pending;
 }
 
+// Тема: функции
+function applyTheme(theme) {
+    document.body.classList.toggle('light-theme', theme === 'light');
+    themeIcon.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    localStorage.setItem('theme', theme);
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(currentTheme);
+    if (themeToggleBtn) {
+        themeToggleBtn.classList.remove('animate');
+        void themeToggleBtn.offsetWidth;
+        themeToggleBtn.classList.add('animate');
+        setTimeout(() => themeToggleBtn.classList.remove('animate'), 700);
+    }
+}
+
+// JWT utils
+function extractUsernameFromJWT(token) {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.sub || null;
+    } catch (e) {
+        return null;
+    }
+}
+
 // Обработчики событий
 function handleSearch(e) {
     searchQuery = e.target.value;
@@ -416,7 +472,7 @@ function editTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
-    document.getElementById('taskModalTitle').textContent = 'Редактировать задачу';
+    document.getElementById('taskModalTitle').textContent = 'Edit task';
     document.getElementById('taskTitle').value = task.title;
     document.getElementById('taskDescription').value = task.description || '';
     document.getElementById('taskStatus').checked = task.status;
@@ -448,14 +504,14 @@ function editTask(taskId) {
                     renderTasks();
                     updateStats();
                     hideTaskModal();
-                    showNotification('Задача обновлена!', 'success');
+                    showNotification('Task updated', 'success');
                 }
             } else {
                 const error = await response.json();
-                showNotification(error.detail || 'Ошибка обновления задачи', 'error');
+                showNotification(error.detail || 'Failed to update task', 'error');
             }
         } catch (error) {
-            showNotification('Ошибка соединения', 'error');
+            showNotification('Connection error', 'error');
         }
         
         // Восстанавливаем оригинальный обработчик
@@ -496,11 +552,21 @@ function escapeHtml(text) {
 
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+// UI helpers
+function updateAuthUI() {
+    const isAuth = !!authToken;
+    mainApp.classList.remove('hidden');
+    if (loginBtn) loginBtn.style.display = isAuth ? 'none' : 'inline-flex';
+    if (logoutBtn) logoutBtn.style.display = isAuth ? 'inline-flex' : 'none';
+    currentUserSpan.textContent = isAuth && currentUser ? currentUser : '';
+    if (guestState) guestState.classList.toggle('hidden', isAuth);
 }

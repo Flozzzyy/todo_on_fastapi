@@ -1,7 +1,8 @@
 import datetime
-from sqlalchemy.orm import mapped_column, Mapped, declarative_base
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, declarative_base
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 class UserModel(Base):
     __tablename__ = 'users'
