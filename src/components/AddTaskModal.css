@@ -1,0 +1,91 @@
+.add-task-container {
+  text-align: left;
+}
+
+.modal-header {
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+
+.modal-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.modal-header p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.add-task-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.add-task-form .form-group {
+  margin-bottom: 0;
+}
+
+.add-task-form label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.add-task-form .input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all var(--transition-fast);
+}
+
+.add-task-form .input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.add-task-form textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.add-task-form select {
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-actions .btn {
+  min-width: 100px;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions .btn {
+    width: 100%;
+  }
+}

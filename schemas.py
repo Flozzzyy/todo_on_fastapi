@@ -34,12 +34,14 @@ class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
     status: bool = False
+    priority: Optional[str] = "medium"
 
 class TaskResponse(BaseModel):
     id: int
     title: str
     description: Optional[str]
     status: bool
+    priority: Optional[str]
     created: datetime
     user_id: Optional[int]
     
@@ -50,3 +52,4 @@ class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[bool] = None
+    priority: Optional[str] = None

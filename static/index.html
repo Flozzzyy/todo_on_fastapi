@@ -1,203 +1,199 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager</title>
+    <title>Task Manager Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body>
-    <!-- Модальное окно авторизации -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <div class="auth-tabs">
-                <button class="tab-btn active" data-tab="login">Sign In</button>
-                <button class="tab-btn" data-tab="register">Sign Up</button>
-            </div>
-            
-            <!-- Форма входа -->
-            <form id="loginForm" class="auth-form active">
-                <h2><i class="fas fa-sign-in-alt"></i> Welcome back</h2>
-                <div class="form-group">
-                    <label for="loginUsername">Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter your username" required>
+    <div id="app">
+        <!-- Основное приложение -->
+        <div class="app-container">
+            <!-- Заголовок -->
+            <header class="header">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-rocket"></i>
+                        <h1>TaskFlow</h1>
+                    </div>
+                    
+                    <div class="header-actions">
+                        <button @click="toggleTheme" class="theme-toggle" :class="{ 'light': theme === 'light' }">
+                            <i class="fas fa-sun" v-if="theme === 'light'"></i>
+                            <i class="fas fa-moon" v-else></i>
+                        </button>
+                        
+                        <div v-if="currentUser" class="user-menu">
+                            <span class="username">{{ currentUser }}</span>
+                            <button @click="logout" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <button v-else @click="showAuthModal = true" class="login-btn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Войти
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+            </header>
+
+            <!-- Основной контент -->
+            <main class="main-content">
+                <!-- Приветствие для гостей -->
+                <div v-if="!currentUser" class="welcome-section">
+                    <div class="welcome-content">
+                        <i class="fas fa-tasks"></i>
+                        <h2>Добро пожаловать в TaskFlow</h2>
+                        <p>Организуйте свои задачи эффективно и красиво</p>
+                        <button @click="showAuthModal = true" class="cta-btn">
+                            <i class="fas fa-rocket"></i>
+                            Начать работу
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </button>
-            </form>
-            
-            <!-- Форма регистрации -->
-            <form id="registerForm" class="auth-form">
-                <h2><i class="fas fa-user-plus"></i> Create your account</h2>
-                <div class="form-group">
-                    <label for="registerUsername">Username</label>
-                    <input type="text" id="registerUsername" placeholder="Pick a username" required>
+
+                <!-- Интерфейс для авторизованных пользователей -->
+                <div v-else class="dashboard">
+                    <!-- Статистика -->
+                    <div class="stats-grid">
+                        <div class="stat-card" :class="{ 'completed': stats.completed > 0 }">
+                            <div class="stat-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-number">{{ stats.total }}</span>
+                                <span class="stat-label">Всего задач</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" :class="{ 'pending': stats.pending > 0 }">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-number">{{ stats.pending }}</span>
+                                <span class="stat-label">В ожидании</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" :class="{ 'completed': stats.completed > 0 }">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-number">{{ stats.completed }}</span>
+                                <span class="stat-label">Выполнено</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" :class="{ 'progress': stats.total > 0 }">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-number">{{ stats.percentage }}%</span>
+                                <span class="stat-label">Прогресс</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Панель управления -->
+                    <div class="control-panel">
+                        <div class="search-section">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input 
+                                    v-model="searchQuery" 
+                                    type="text" 
+                                    placeholder="Поиск задач..."
+                                    @input="filterTasks">
+                            </div>
+                        </div>
+                        
+                        <div class="filter-section">
+                            <button 
+                                v-for="filter in filters" 
+                                :key="filter.value"
+                                @click="setFilter(filter.value)"
+                                class="filter-btn"
+                                :class="{ 'active': currentFilter === filter.value }">
+                                <i :class="filter.icon"></i>
+                                {{ filter.label }}
+                            </button>
+                        </div>
+                        
+                        <div class="add-section">
+                            <button @click="showAddTaskModal = true" class="add-btn">
+                                <i class="fas fa-plus"></i>
+                                Новая задача
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Список задач -->
+                    <div class="tasks-section">
+                        <div v-if="loading" class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>Загружаем задачи...</p>
+                        </div>
+                        
+                        <div v-else-if="filteredTasks.length === 0" class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>{{ searchQuery ? 'Задачи не найдены' : 'Задач пока нет' }}</h3>
+                            <p v-if="!searchQuery">Создайте свою первую задачу!</p>
+                            <p v-else>Попробуйте изменить поисковый запрос</p>
+                        </div>
+                        
+                        <div v-else class="tasks-grid">
+                            <div 
+                                v-for="task in filteredTasks" 
+                                :key="task.id"
+                                class="task-card"
+                                :class="{ 'completed': task.status }"
+                                @click="toggleTaskStatus(task)">
+                                <div class="task-header">
+                                    <div class="task-status-indicator">
+                                        <i v-if="task.status" class="fas fa-check"></i>
+                                    </div>
+                                    <h3 class="task-title">{{ task.title }}</h3>
+                                    <div class="task-actions">
+                                        <button @click.stop="editTask(task)" class="action-btn edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button @click.stop="deleteTask(task.id)" class="action-btn delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <p v-if="task.description" class="task-description">
+                                    {{ task.description }}
+                                </p>
+                                
+                                <div class="task-meta">
+                                    <span class="task-date">
+                                        <i class="fas fa-calendar"></i>
+                                        {{ formatDate(task.created) }}
+                                    </span>
+                                    <span class="task-priority" :class="getPriorityClass(task)">
+                                        {{ getPriorityLabel(task) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" placeholder="you@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" placeholder="Create a password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </button>
-            </form>
+            </main>
         </div>
     </div>
 
-    <!-- Основной интерфейс -->
-    <div id="mainApp" class="hidden">
-        <!-- Заголовок -->
-        <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-tasks"></i> Task Manager</h1>
-                <div class="user-info">
-                    <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">
-                        <i id="themeIcon" class="fas fa-moon"></i>
-                    </button>
-                    <span id="currentUser"></span>
-                    <button id="loginBtn" class="btn btn-outline">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                    <button id="logoutBtn" class="btn btn-outline">
-                        <i class="fas fa-sign-out-alt"></i> Sign Out
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Основной контент -->
-        <main class="main-content">
-            <!-- Панель управления -->
-            <div class="control-panel">
-                <div class="search-section">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Search tasks...">
-                    </div>
-                </div>
-                
-                <div class="filter-section">
-                    <button class="filter-btn active" data-filter="all">
-                        <i class="fas fa-list"></i> All
-                    </button>
-                    <button class="filter-btn" data-filter="pending">
-                        <i class="fas fa-clock"></i> Pending
-                    </button>
-                    <button class="filter-btn" data-filter="completed">
-                        <i class="fas fa-check"></i> Completed
-                    </button>
-                </div>
-                
-                <div class="add-section">
-                    <button id="addTaskBtn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Task
-                    </button>
-                </div>
-            </div>
-
-            <!-- Статистика -->
-            <div class="stats-panel">
-                <div class="stat-card">
-                    <i class="fas fa-tasks"></i>
-                    <div class="stat-info">
-                        <span class="stat-number" id="totalTasks">0</span>
-                        <span class="stat-label">Total</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div class="stat-info">
-                        <span class="stat-number" id="pendingTasks">0</span>
-                        <span class="stat-label">Pending</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-check-circle"></i>
-                    <div class="stat-info">
-                        <span class="stat-number" id="completedTasks">0</span>
-                        <span class="stat-label">Completed</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Список задач -->
-            <div class="tasks-container">
-                <div id="tasksList" class="tasks-list">
-                    <!-- Задачи будут добавляться здесь -->
-                </div>
-                
-                <div id="emptyState" class="empty-state hidden">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h3>No tasks yet</h3>
-                    <p>Create your first task!</p>
-                </div>
-                <div id="guestState" class="empty-state">
-                    <i class="fas fa-user"></i>
-                    <h3>Welcome</h3>
-                    <p>Sign in to create and manage your tasks.</p>
-                    <div style="margin-top:16px;">
-                        <button id="getStartedBtn" class="btn btn-primary"><i class="fas fa-arrow-right"></i> Get Started</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Модальное окно добавления/редактирования задачи -->
-    <div id="taskModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="taskModalTitle">Add task</h2>
-                <button class="close-btn" id="closeTaskModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="taskForm">
-                <div class="form-group">
-                    <label for="taskTitle">Title</label>
-                    <input type="text" id="taskTitle" placeholder="Task title" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="taskDescription">Description</label>
-                    <textarea id="taskDescription" rows="3" placeholder="Optional description"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="taskStatus">
-                        <span class="checkmark"></span>
-                        Completed
-                    </label>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="cancelTaskBtn">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="saveTaskBtn">
-                        <i class="fas fa-save"></i> Save
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Уведомления -->
-    <div id="notifications" class="notifications"></div>
-
-    <script src="script.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

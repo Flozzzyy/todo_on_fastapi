@@ -130,6 +130,8 @@ async def update_one(
         task.description = task_update.description
     if task_update.status is not None:
         task.status = task_update.status
+    if task_update.priority is not None:
+        task.priority = task_update.priority
     
     await db.commit()
     await db.refresh(task)

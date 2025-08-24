@@ -22,4 +22,5 @@ class TaskModel(Base):
     description: Mapped[str] = mapped_column(nullable=True)
     created: Mapped[datetime.datetime] = mapped_column(default=datetime.datetime.now)
     status: Mapped[bool] = mapped_column(nullable=True, default=False)
+    priority: Mapped[str] = mapped_column(nullable=True, default="medium")
     user_id: Mapped[int] = mapped_column(nullable=True)  # Связь с пользователем
